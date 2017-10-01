@@ -7,10 +7,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>israel.transport</artifactId>
+    <artifactId>israel.common</artifactId>
     <packaging>jar</packaging>
 
-    <name>transport</name>
+    <name>israel.common</name>
     <url>http://maven.apache.org</url>
 
     <properties>
@@ -18,11 +18,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>israel.common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
