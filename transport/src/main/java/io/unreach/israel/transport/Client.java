@@ -3,8 +3,6 @@ package io.unreach.israel.transport;
 import io.unreach.israel.ServiceProvider;
 import io.unreach.israel.exception.TimeoutException;
 
-import java.net.URI;
-
 /**
  * 客户端
  *
