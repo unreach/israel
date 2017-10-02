@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.unreach.israel.transport;
+package io.unreach.israel.transport.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -40,13 +40,17 @@ public class HelloWorldHttp1Handler extends SimpleChannelInboundHandler<FullHttp
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+
         if (HttpUtil.is100ContinueExpected(req)) {
             ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
         }
         boolean keepAlive = HttpUtil.isKeepAlive(req);
 
+
+        System.out.println( req.uri());
+
         ByteBuf content = ctx.alloc().buffer();
-        content.writeBytes(HelloWorldHttp2Handler.RESPONSE_BYTES.duplicate());
+        content.writeBytes(ChannelHttp2Handler.RESPONSE_BYTES.duplicate());
         ByteBufUtil.writeAscii(content, " - via " + req.protocolVersion() + " (" + establishApproach + ")");
 
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, content);

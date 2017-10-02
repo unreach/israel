@@ -10,9 +10,13 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.unreach.israel.transport.server.Http2OrHttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Http2Server extends ChannelInitializer<SocketChannel> implements Server {
 
+    private static final Logger logger = LoggerFactory.getLogger(Http2Server.class);
 
     @Override
     public boolean initialize(int port) {
@@ -34,7 +38,7 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
             ch.closeFuture().sync();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("", e);
         } finally {
             group.shutdownGracefully();
         }

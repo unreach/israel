@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package io.unreach.israel.transport;
+package io.unreach.israel.transport.server;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -29,14 +29,14 @@ public class Http2OrHttpHandler extends ApplicationProtocolNegotiationHandler {
 
     private static final int MAX_CONTENT_LENGTH = 1024 * 100;
 
-    protected Http2OrHttpHandler() {
+    public Http2OrHttpHandler() {
         super(ApplicationProtocolNames.HTTP_1_1);
     }
 
     @Override
     protected void configurePipeline(ChannelHandlerContext ctx, String protocol) throws Exception {
         if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
-            ctx.pipeline().addLast(Http2MultiplexCodecBuilder.forServer(new HelloWorldHttp2Handler()).build());
+            ctx.pipeline().addLast(Http2MultiplexCodecBuilder.forServer(new ChannelHttp2Handler()).build());
             return;
         }
 

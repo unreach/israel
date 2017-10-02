@@ -24,6 +24,9 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
+import io.unreach.israel.transport.client.Http2ClientInitializer;
+import io.unreach.israel.transport.client.Http2SettingsHandler;
+import io.unreach.israel.transport.client.HttpResponseHandler;
 
 import java.util.concurrent.TimeUnit;
 
@@ -41,8 +44,8 @@ public final class Http2Client {
 
     static final String HOST = System.getProperty("host", "127.0.0.1");
     static final int PORT = 8080;//Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
-    static final String URL = System.getProperty("url", "/whatever");
-    static final String URL2 = System.getProperty("url2");
+    static final String URL = System.getProperty("url");
+    static final String URL2 = System.getProperty("url2", "/whatever");
     static final String URL2DATA = System.getProperty("url2data", "test data!");
 
     public static void main(String[] args) throws Exception {
@@ -94,6 +97,7 @@ public final class Http2Client {
             }
             channel.flush();
             responseHandler.awaitResponses(5, TimeUnit.SECONDS);
+
             System.out.println("Finished HTTP/2 request(s)");
 
             // Wait until the connection is closed.
