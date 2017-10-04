@@ -10,7 +10,9 @@ import io.netty.util.CharsetUtil;
 import io.netty.util.internal.PlatformDependent;
 
 import java.util.AbstractMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static io.netty.buffer.Unpooled.wrappedBuffer;
 import static io.netty.handler.codec.http.HttpMethod.POST;
@@ -71,6 +73,36 @@ public class Http2ChannelHandler extends SimpleChannelInboundHandler<FullHttpRes
             }
 
             entry.getValue().setSuccess();
+        }
+    }
+
+    /**
+     * Wait (sequentially) for a time duration for each anticipated response
+     *
+     * @param timeout Value of time to wait for each response
+     * @param unit Units associated with {@code timeout}
+     * @see HttpResponseHandler#put(int, io.netty.channel.ChannelFuture, io.netty.channel.ChannelPromise)
+     */
+    public void awaitResponses(long timeout, TimeUnit unit) {
+        Iterator<Map.Entry<Integer, Map.Entry<ChannelFuture, ChannelPromise>>> itr = streamidPromiseMap.entrySet().iterator();
+        while (itr.hasNext()) {
+            Map.Entry<Integer, Map.Entry<ChannelFuture, ChannelPromise>> entry = itr.next();
+            ChannelFuture writeFuture = entry.getValue().getKey();
+            if (!writeFuture.awaitUninterruptibly(timeout, unit)) {
+                throw new IllegalStateException("Timed out waiting to write for stream id " + entry.getKey());
+            }
+            if (!writeFuture.isSuccess()) {
+                throw new RuntimeException(writeFuture.cause());
+            }
+            ChannelPromise promise = entry.getValue().getValue();
+            if (!promise.awaitUninterruptibly(timeout, unit)) {
+                throw new IllegalStateException("Timed out waiting for response on stream id " + entry.getKey());
+            }
+            if (!promise.isSuccess()) {
+                throw new RuntimeException(promise.cause());
+            }
+            System.out.println("---Stream id: " + entry.getKey() + " received---");
+            itr.remove();
         }
     }
 

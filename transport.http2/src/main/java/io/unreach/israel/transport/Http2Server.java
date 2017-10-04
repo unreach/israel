@@ -8,9 +8,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http2.Http2MultiplexCodec;
+import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.unreach.israel.transport.internal.server.Http2OrHttpHandler;
+import io.unreach.israel.transport.internal.server.ChannelHttp2Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +61,8 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        ch.pipeline().addLast(SslUtils.getServerSsl().newHandler(ch.alloc()), new Http2OrHttpHandler());
+        Http2MultiplexCodec codec = Http2MultiplexCodecBuilder.forServer(new ChannelHttp2Handler()).build();
+        ch.pipeline().addLast(SslUtils.getServerSsl().newHandler(ch.alloc()), codec);
     }
 
 }
