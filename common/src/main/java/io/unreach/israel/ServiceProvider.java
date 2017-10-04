@@ -12,7 +12,16 @@ public class ServiceProvider implements Serializable {
     private static final long serialVersionUID = -8538482418107213047L;
 
     private String host;
-    private int port;
+    private int port = 0;
+
+    public ServiceProvider() {
+
+    }
+
+    public ServiceProvider(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
 
     public String getHost() {
         return host;
@@ -30,7 +39,7 @@ public class ServiceProvider implements Serializable {
         this.port = port;
     }
 
-    public String getId(){
-        return this.host+"_"+this.port;
+    public String getId() {
+        return this.host + ":" + this.port;
     }
 }

@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.unreach.israel.transport.server;
+package io.unreach.israel.transport.internal.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;

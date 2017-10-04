@@ -13,26 +13,18 @@
  * the License.
  */
 
-package io.unreach.israel.transport.server;
+package io.unreach.israel.transport.internal.server;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http2.*;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.StringUtil;
-import io.unreach.israel.transport.ChannelHandler;
 import okhttp3.HttpUrl;
 
-import java.net.URL;
-import java.net.URLEncoder;
-
-import static io.netty.buffer.Unpooled.copiedBuffer;
-import static io.netty.buffer.Unpooled.unreleasableBuffer;
-import static io.netty.buffer.Unpooled.wrappedBuffer;
+import static io.netty.buffer.Unpooled.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 /**
@@ -42,7 +34,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
  * Channels. This API is very experimental and incomplete.
  */
 @Sharable
-public class ChannelHttp2Handler extends ChannelDuplexHandler implements ChannelHandler {
+public class ChannelHttp2Handler extends ChannelDuplexHandler {
 
     static final ByteBuf RESPONSE_BYTES = unreleasableBuffer(copiedBuffer("Hello World", CharsetUtil.UTF_8));
 
@@ -88,7 +80,7 @@ public class ChannelHttp2Handler extends ChannelDuplexHandler implements Channel
             System.out.println(str);
             // }
 
-            String a = "aaaa";
+            String a = "aaaa:" + str;
 
             ByteBuf result = wrappedBuffer(a.getBytes());
 
@@ -131,14 +123,8 @@ public class ChannelHttp2Handler extends ChannelDuplexHandler implements Channel
     private static void sendResponse(ChannelHandlerContext ctx, ByteBuf payload) {
         // Send a frame for the response status
         Http2Headers headers = new DefaultHttp2Headers().status(OK.codeAsText());
-        Integer streamId = headers.getInt(HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text());
 
         ctx.write(new DefaultHttp2HeadersFrame(headers));
         ctx.write(new DefaultHttp2DataFrame(payload, true));
-    }
-
-    @Override
-    public Object invoke(String serviceId, String methodName, Object[] params) {
-        return null;
     }
 }

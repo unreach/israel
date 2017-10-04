@@ -39,4 +39,5 @@ public class Channel {
     public void setHandler(ChannelHandler handler) {
         this.handler = handler;
     }
+
 }

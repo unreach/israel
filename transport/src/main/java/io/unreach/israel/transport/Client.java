@@ -17,5 +17,6 @@ public interface Client {
      */
     public Channel connect(ServiceProvider provider) throws TimeoutException;
 
+    public void destory(Channel channel);
 
 }

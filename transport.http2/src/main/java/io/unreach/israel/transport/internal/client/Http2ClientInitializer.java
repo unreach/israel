@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package io.unreach.israel.transport.client;
+package io.unreach.israel.transport.internal.client;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -36,12 +36,15 @@ public class Http2ClientInitializer extends ChannelInitializer<SocketChannel> {
     private final SslContext sslCtx;
     private final int maxContentLength;
     private HttpToHttp2ConnectionHandler connectionHandler;
-    private HttpResponseHandler responseHandler;
+   // private HttpResponseHandler responseHandler;
     private Http2SettingsHandler settingsHandler;
 
-    public Http2ClientInitializer(SslContext sslCtx, int maxContentLength) {
+    private ChannelInboundHandlerAdapter channelInboundHandlerAdapter;
+
+    public Http2ClientInitializer(ChannelInboundHandlerAdapter channelInboundHandlerAdapter,SslContext sslCtx, int maxContentLength) {
         this.sslCtx = sslCtx;
         this.maxContentLength = maxContentLength;
+        this.channelInboundHandlerAdapter = channelInboundHandlerAdapter;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class Http2ClientInitializer extends ChannelInitializer<SocketChannel> {
                 .frameLogger(logger)
                 .connection(connection)
                 .build();
-        responseHandler = new HttpResponseHandler();
+        //responseHandler = new HttpResponseHandler();
         settingsHandler = new Http2SettingsHandler(ch.newPromise());
         if (sslCtx != null) {
             configureSsl(ch);
@@ -66,16 +69,16 @@ public class Http2ClientInitializer extends ChannelInitializer<SocketChannel> {
         }
     }
 
-    public HttpResponseHandler responseHandler() {
-        return responseHandler;
-    }
+//    public HttpResponseHandler responseHandler() {
+//        return responseHandler;
+//    }
 
     public Http2SettingsHandler settingsHandler() {
         return settingsHandler;
     }
 
     protected void configureEndOfPipeline(ChannelPipeline pipeline) {
-        pipeline.addLast(settingsHandler, responseHandler);
+        pipeline.addLast(settingsHandler, channelInboundHandlerAdapter);
     }
 
     /**

@@ -10,7 +10,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.unreach.israel.transport.server.Http2OrHttpHandler;
+import io.unreach.israel.transport.internal.server.Http2OrHttpHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,32 +18,43 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
 
     private static final Logger logger = LoggerFactory.getLogger(Http2Server.class);
 
+    private Channel channel;
+    private EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+    private EventLoopGroup workerGroup = new NioEventLoopGroup(10);
+
     @Override
-    public boolean initialize(int port) {
-
+    public boolean start(int port) {
         // Configure the server.
-        EventLoopGroup group = new NioEventLoopGroup();
+        ServerBootstrap b = new ServerBootstrap();
+        b.option(ChannelOption.SO_BACKLOG, 1024);
+        b.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .childHandler(this);
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.option(ChannelOption.SO_BACKLOG, 1024);
-            b.group(group)
-                    .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(this);
-
-            Channel ch = b.bind(port).sync().channel();
-
-            System.err.println("Open your HTTP/2-enabled web browser and navigate to https://127.0.0.1:" + port + '/');
-
-            ch.closeFuture().sync();
-            return true;
+            channel = b.bind(port).sync().channel();
         } catch (Exception e) {
             logger.error("", e);
-        } finally {
-            group.shutdownGracefully();
+            return false;
         }
 
-        return false;
+        System.err.println("Open your HTTP/2-enabled web browser and navigate to https://127.0.0.1:" + port + '/');
+
+        return true;
+
+    }
+
+    @Override
+    public void stop() {
+        if(channel==null){
+            return;
+        }
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+        channel.closeFuture().syncUninterruptibly();
+        bossGroup = null;
+        workerGroup = null;
+        channel = null;
     }
 
     @Override
