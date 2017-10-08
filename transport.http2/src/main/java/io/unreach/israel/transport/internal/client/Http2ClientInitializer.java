@@ -57,7 +57,7 @@ public class Http2ClientInitializer extends ChannelInitializer<SocketChannel> {
                                 .maxContentLength(maxContentLength)
                                 .propagateSettings(true)
                                 .build()))
-                .frameLogger(logger)
+                //.frameLogger(logger)
                 .connection(connection)
                 .build();
         //responseHandler = new HttpResponseHandler();

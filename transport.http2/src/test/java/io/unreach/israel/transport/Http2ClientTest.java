@@ -16,6 +16,9 @@ package io.unreach.israel.transport;
 
 import io.unreach.israel.ServiceProvider;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * An HTTP2 client that allows you to send HTTP2 frames to a server. Inbound and outbound frames are
  * logged. When run from the command-line, sends a single HEADERS frame to the server and gets back
@@ -31,27 +34,30 @@ public final class Http2ClientTest {
         io.unreach.israel.transport.Channel channel = client.connect(new ServiceProvider("127.0.0.1", 8080));
 
 
-        channel.getHandler().invoke("io.unreach.israel.hello_1.0.0", "say", null);
+        // String result = (String) channel.getHandler().invoke("io.unreach.israel.hello_1.0.0", "say", null);
 
-        client.destory(channel);
+        //  client.destory(channel);
 
-//        ExecutorService executorService = Executors.newFixedThreadPool(5);
-//
-//        for (int i = 0; i < 9; i++) {
-//            final int a = i;
-//            final int streamId = 3 + i * 2;
-//            executorService.execute(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        channel.getHandler().invoke("io.unreach.israel.hello_1.0.0", "say", null);
-//                        // getHttpResponseHandler(streamId, a+" test " + streamId, channel);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-//        }
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+
+        for (int i = 0; i < 20; i++) {
+            final int a = i;
+            final int streamId = 3 + i * 2;
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String a2 = (String) channel.getHandler().invoke("io.unreach.israel.hello_1.0.0", "say" + a, null);
+                        System.out.println(a2);
+                        // getHttpResponseHandler(streamId, a+" test " + streamId, channel);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+        // executorService.awaitTermination(10, TimeUnit.SECONDS);
 
     }
 

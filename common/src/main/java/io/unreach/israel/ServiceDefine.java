@@ -1,10 +1,7 @@
 package io.unreach.israel;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * service define pojo
@@ -22,7 +19,7 @@ public class ServiceDefine implements Serializable {
     // 响应超时时间，单位ms,默认30s
     private long responseTimeout = 30000;
     // 缓存暴露服务的方法定义，不允许重载
-    private Map<String, ServiceMethod> methods = new HashMap<String, ServiceMethod>();
+    private LinkedHashMap<String, ServiceMethod> methods = new LinkedHashMap<String, ServiceMethod>();
 
     private List<ServiceProvider> providers = new ArrayList<>();
 

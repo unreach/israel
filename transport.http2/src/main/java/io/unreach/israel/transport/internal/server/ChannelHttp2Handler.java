@@ -20,9 +20,13 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.*;
-import io.netty.util.CharsetUtil;
 import io.netty.util.internal.StringUtil;
-import okhttp3.HttpUrl;
+import io.unreach.israel.ServiceDefine;
+import io.unreach.israel.ServiceDefineFactory;
+import io.unreach.israel.transport.TransportConstants;
+import io.unreach.israel.transport.MessageKey;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.netty.buffer.Unpooled.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -36,10 +40,10 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 @Sharable
 public class ChannelHttp2Handler extends ChannelDuplexHandler {
 
-    static final ByteBuf RESPONSE_BYTES = unreleasableBuffer(copiedBuffer("Hello World", CharsetUtil.UTF_8));
 
     static final ByteBuf EMPTY = unreleasableBuffer(copiedBuffer(StringUtil.EMPTY_STRING.getBytes()));
 
+    final static ConcurrentHashMap<Integer, MessageKey> messageKeys = new ConcurrentHashMap();
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -62,29 +66,34 @@ public class ChannelHttp2Handler extends ChannelDuplexHandler {
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         ctx.flush();
+        // local.remove();
     }
 
     /**
      * If receive a frame with end-of-stream set, send a pre-canned response.
      */
-    private static void onDataRead(ChannelHandlerContext ctx, Http2DataFrame data) throws Exception {
+    private void onDataRead(ChannelHandlerContext ctx, Http2DataFrame data) throws Exception {
         if (data.isEndStream()) {
 
+            MessageKey messageKey = messageKeys.get(data.stream().id());
+            // System.out.println(":" + messageKeys.get(data.stream().id()).getMsgId());
 
+            // local.remove();
+            // Http2Stream stream = (Http2Stream) data.stream();
             ByteBuf content = data.content();
             // if (content.isReadable()) {
             int contentLength = content.readableBytes();
             byte[] arr = new byte[contentLength];
             content.readBytes(arr);
             String str = new String(arr);
-            System.out.println(str);
+            // System.out.println(str);
             // }
 
-            String a = "aaaa:" + str;
+            String a = ":" + "aaaa:" + str;
 
             ByteBuf result = wrappedBuffer(a.getBytes());
 
-            sendResponse(ctx, result);
+            sendResponse(ctx, messageKey.getMsgId(), result);
         } else {
             // We do not send back the response to the remote-peer, so we need to release it.
             data.release();
@@ -94,36 +103,44 @@ public class ChannelHttp2Handler extends ChannelDuplexHandler {
     /**
      * If receive a frame with end-of-stream set, send a pre-canned response.
      */
-    private static void onHeadersRead(ChannelHandlerContext ctx, Http2HeadersFrame headers)
+    private void onHeadersRead(ChannelHandlerContext ctx, Http2HeadersFrame headers)
             throws Exception {
+        String msgId = headers.headers().get(TransportConstants.MSG_ID).toString();
+        DefaultHttp2Headers http2Headers = (DefaultHttp2Headers) headers.headers();
+        MessageKey messageKey = new MessageKey();
+        messageKey.setMsgId(msgId);
+
+        String path = http2Headers.path().toString();
+        //解析路径，得到service定义
+        if (path.indexOf("_") != -1) {
+            String[] arrs = path.split("_");
+            String serviceId = arrs[0] + "_" + arrs[1];
+            ServiceDefine serviceDefine = ServiceDefineFactory.getServiceDefine(serviceId);
+            messageKey.setServiceDefine(serviceDefine);
+            messageKey.setMethodName(arrs[2]);
+        }
+        messageKeys.put(headers.stream().id(), messageKey);
+
         if (headers.isEndStream()) {
 
             ByteBuf content = ctx.alloc().buffer();
             if (headers.headers().path().toString().equals("/favicon.ico")) {
                 content.writeBytes(EMPTY.duplicate());
-                sendResponse(ctx, content);
+                sendResponse(ctx, null, content);
                 return;
             }
-
-            DefaultHttp2Headers http2Headers = (DefaultHttp2Headers) headers.headers();
-
-            HttpUrl url = HttpUrl.parse(http2Headers.scheme() + "://" + http2Headers.authority() + http2Headers.path());
-            System.out.println(url);
-            content.writeBytes(url.encodedPath().getBytes());
-
-            // ByteBufUtil.writeAscii(content,url);
-            //ByteBufUtil.writeAscii(content, " - via HTTP/2");
-            sendResponse(ctx, content);
         }
     }
 
     /**
      * Sends a "Hello World" DATA frame to the client.
      */
-    private static void sendResponse(ChannelHandlerContext ctx, ByteBuf payload) {
+    private void sendResponse(ChannelHandlerContext ctx, String msgId, ByteBuf payload) {
         // Send a frame for the response status
         Http2Headers headers = new DefaultHttp2Headers().status(OK.codeAsText());
-
+        if (msgId != null) {
+            headers.add(TransportConstants.MSG_ID, msgId);
+        }
         ctx.write(new DefaultHttp2HeadersFrame(headers));
         ctx.write(new DefaultHttp2DataFrame(payload, true));
     }

@@ -10,8 +10,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http2.Http2MultiplexCodec;
 import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.unreach.israel.transport.internal.server.ChannelHttp2Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +29,7 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
         b.option(ChannelOption.SO_BACKLOG, 1024);
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO))
+                //.handler(new LoggingHandler(LogLevel.INFO))
                 .childHandler(this);
         try {
             channel = b.bind(port).sync().channel();
@@ -40,7 +38,7 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
             return false;
         }
 
-        System.err.println("Open your HTTP/2-enabled web browser and navigate to https://127.0.0.1:" + port + '/');
+       // System.err.println("Open your HTTP/2-enabled web browser and navigate to https://127.0.0.1:" + port + '/');
 
         return true;
 
