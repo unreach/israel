@@ -10,6 +10,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http2.Http2MultiplexCodec;
 import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder;
+import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.unreach.israel.transport.internal.server.ChannelHttp2Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +40,7 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
             return false;
         }
 
-       // System.err.println("Open your HTTP/2-enabled web browser and navigate to https://127.0.0.1:" + port + '/');
+        // System.err.println("Open your HTTP/2-enabled web browser and navigate to https://127.0.0.1:" + port + '/');
 
         return true;
 
@@ -46,7 +48,7 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
 
     @Override
     public void stop() {
-        if(channel==null){
+        if (channel == null) {
             return;
         }
         bossGroup.shutdownGracefully();
@@ -60,7 +62,8 @@ public class Http2Server extends ChannelInitializer<SocketChannel> implements Se
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         Http2MultiplexCodec codec = Http2MultiplexCodecBuilder.forServer(new ChannelHttp2Handler()).build();
-        ch.pipeline().addLast(SslUtils.getServerSsl().newHandler(ch.alloc()), codec);
+        ch.pipeline().addLast(SslUtils.getServerSsl().newHandler(ch.alloc()),
+                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), codec);
     }
 
 }

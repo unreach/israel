@@ -23,10 +23,15 @@
             <artifactId>israel.transport</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.4.0</version>
+        </dependency>
         <!--<dependency>-->
-            <!--<groupId>com.squareup.okhttp3</groupId>-->
-            <!--<artifactId>okhttp</artifactId>-->
-            <!--<version>3.9.0</version>-->
+        <!--<groupId>com.squareup.okhttp3</groupId>-->
+        <!--<artifactId>okhttp</artifactId>-->
+        <!--<version>3.9.0</version>-->
         <!--</dependency>-->
         <dependency>
             <groupId>io.netty</groupId>
